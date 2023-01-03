@@ -1,7 +1,7 @@
 package com.example.cursospring.controller;
 
 import com.example.cursospring.entity.vm.Asset;
-import com.example.cursospring.service.UserServiceImp;
+import com.example.cursospring.service.CursoServiceImp;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.ResponseEntity;
@@ -16,21 +16,17 @@ import java.util.Map;
 public class AssetController {
 
     @Autowired
-    private UserServiceImp s3Service;
+    private CursoServiceImp s3Service;
 
 
     //metodo para subir un archivo
     @PostMapping("/upload")
-   public Map<String, String > upload(@RequestParam MultipartFile foto, @RequestParam MultipartFile cedula){
+   public Map<String, String > upload(@RequestParam MultipartFile foto){
         String key = s3Service.putObject(foto);
-        String key2 = s3Service.putObject(cedula);
-
 
         Map<String, String> result=new HashMap<>();
         result.put("key", key);
-        result.put("key", key2);
         result.put("url", s3Service.getObjectUrl(key));
-        result.put("url", s3Service.getObjectUrl(key2));
 
         return result;
     }

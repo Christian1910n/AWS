@@ -8,9 +8,9 @@ import java.util.UUID;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
 import com.amazonaws.util.IOUtils;
-import com.example.cursospring.entity.User;
+import com.example.cursospring.entity.Curso;
 import com.example.cursospring.entity.vm.Asset;
-import com.example.cursospring.repository.UserRepository;
+import com.example.cursospring.repository.CursoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import org.springframework.data.domain.Page;
@@ -21,33 +21,33 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
 @Service
-public class UserServiceImp implements UserService{
-	private final static String BUCKET = "demospringboots3bucket2";
+public class CursoServiceImp implements CursoService {
+	private final static String BUCKET = "proyectospringboots3bucket";
 	@Autowired
-	private UserRepository userR;
+	private CursoRepository userR;
 
 	@Autowired
 	private AmazonS3Client s3Client;
 
 	@Override
 	@Transactional(readOnly=true)
-	public Iterable<User> findAll() {
+	public Iterable<Curso> findAll() {
 		return userR.findAll();
 	}
 
 	@Override
-	public Page<User> findAll(Pageable pageable) {
-		return (Page<User>) userR.findAll((Sort) pageable);
+	public Page<Curso> findAll(Pageable pageable) {
+		return (Page<Curso>) userR.findAll((Sort) pageable);
 	}
 
 	@Override
 	@Transactional(readOnly=true)
-	public Optional<User> findById(Integer id) {
+	public Optional<Curso> findById(Integer id) {
 		return userR.findById(id);
 	}
 
 	@Override
-	public User save(User user) {
+	public Curso save(Curso user) {
 		return userR.save(user);
 	}
 
@@ -59,7 +59,7 @@ public class UserServiceImp implements UserService{
 
 	public String putObject(MultipartFile multipartFile){
 		String extension = StringUtils.getFilenameExtension(multipartFile.getOriginalFilename());
-		String key = String.format("%s.%s", UUID.randomUUID(), extension);
+		String key = String.format("%s.%s", UUID.randomUUID(), extension);//llave para acaceder al bucket
 
 		ObjectMetadata objectMetadata= new ObjectMetadata();
 		objectMetadata.setContentType(multipartFile.getContentType());
@@ -70,7 +70,7 @@ public class UserServiceImp implements UserService{
 
 			s3Client.putObject(putObjectRequest);
 			return key;
-		} catch (IOException e) {
+		} catch (IOException e) {//	Error
 			throw new RuntimeException(e);
 		}
 	}
@@ -80,7 +80,7 @@ public class UserServiceImp implements UserService{
 		ObjectMetadata metadata= s3Object.getObjectMetadata();
 
 		try {
-			S3ObjectInputStream inputStream = s3Object.getObjectContent();
+			S3ObjectInputStream inputStream = s3Object.getObjectContent();//Tipo de contenido=Visializar en el navegador la imagen, pdf, etc.
 			byte[] bytes= IOUtils.toByteArray(inputStream);
 			return new Asset(bytes, metadata.getContentType());
 		} catch (IOException e) {
@@ -93,6 +93,8 @@ public class UserServiceImp implements UserService{
 		s3Client.deleteObject(BUCKET,key);
 	}
 
+	//Construir la url para los objetos publicos
+	//En caso de que el cliente  quiera acceder desde una URL
 	public String getObjectUrl(String key){
 		return String.format("https://%s.s3.amazonaws.com/%s",BUCKET,key);
 	}
